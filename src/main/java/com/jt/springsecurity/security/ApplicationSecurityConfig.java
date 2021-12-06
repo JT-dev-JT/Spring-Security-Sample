@@ -12,8 +12,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 
-import static com.jt.springsecurity.security.ApplicationUserRole.ADMIN;
-import static com.jt.springsecurity.security.ApplicationUserRole.STUDENT;
+import static com.jt.springsecurity.security.ApplicationUserRole.*;
 
 @Configuration
 @EnableWebSecurity
@@ -29,9 +28,10 @@ public class ApplicationSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
+                .csrf().disable()
                 .authorizeRequests()
-                .antMatchers("/","index","/css/*","/js/*")
-                .permitAll()
+                .antMatchers("/","index","/css/*","/js/*").permitAll()
+                .antMatchers("/api/**").hasRole(STUDENT.name())
                 .anyRequest()
                 .authenticated()
                 .and()
@@ -44,7 +44,7 @@ public class ApplicationSecurityConfig extends WebSecurityConfigurerAdapter {
     protected UserDetailsService userDetailsService() {
         UserDetails annaSmithUser= User.builder()
                 .username("annasmith")
-                .password(passwordEncoder.encode("password"))
+                .password(passwordEncoder.encode("pass"))
                 .roles(STUDENT.name()) //ROLE_STUDENT
                 .build();
 
@@ -53,6 +53,12 @@ public class ApplicationSecurityConfig extends WebSecurityConfigurerAdapter {
                 .password(passwordEncoder.encode("pass"))
                 .roles(ADMIN.name())
                 .build();
-        return new InMemoryUserDetailsManager(annaSmithUser,lindaUser);
+
+        UserDetails tomUser= User.builder()
+                .username("tom")
+                .password(passwordEncoder.encode("pass"))
+                .roles(ADMINTRAINEE.name())
+                .build();
+        return new InMemoryUserDetailsManager(annaSmithUser,lindaUser,tomUser);
     }
 }
